@@ -1,0 +1,611 @@
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');
+
+    #clinic-app {
+        font-family: 'Inter', sans-serif;
+        background-color: #0f172a;
+        color: #f8fafc;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        position: relative;
+        width: 100vw;
+        max-width: 100%;
+        min-height: 800px;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
+    /* PORTADA EXTERIOR */
+    .clinic-facade {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: #94a3b8; z-index: 20; display: flex; flex-direction: column;
+        align-items: center; justify-content: flex-start;
+        transition: transform 1.2s cubic-bezier(0.77, 0, 0.175, 1), opacity 1s ease;
+        box-sizing: border-box;
+    }
+    .clinic-facade.opened { transform: scale(1.02); opacity: 0; pointer-events: none; }
+
+    .building-top {
+        width: 100%; height: 170px; background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%);
+        border-bottom: 4px solid #64748b; display: flex; justify-content: space-around; align-items: center; padding: 0 8%; box-sizing: border-box;
+    }
+    .window-frame { width: 22%; height: 110px; background: #e2e8f0; border: 4px solid #475569; display: flex; gap: 3px; padding: 3px; }
+    .window-pane { flex: 1; background: linear-gradient(135deg, #38bdf8 0%, #1e293b 80%); opacity: 0.85; }
+
+    .header-sign-real {
+        width: 92%; margin-top: -15px; background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+        border: 4px solid #0284c7; border-bottom: 6px solid #075985; border-radius: 6px; padding: 18px; text-align: center; position: relative; z-index: 5;
+    }
+    .header-sign-real h1 { font-family: 'Roboto', sans-serif; color: #1e293b; font-size: 2.2rem; margin: 0; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    .header-sign-real h2 { color: #f0f9ff; font-size: 1.05rem; margin-top: 6px; font-weight: 600; }
+
+    .entrance-building-real {
+        width: 100%; height: 380px; background: linear-gradient(90deg, #1e293b 0%, #334155 15%, #334155 85%, #1e293b 100%);
+        position: relative; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 50px 10px 50px; box-sizing: border-box;
+    }
+    .plotted-window { width: 28%; height: 85%; background: rgba(15, 23, 42, 0.9); border: 3px solid #475569; border-bottom: none; padding: 16px; color: #f8fafc; display: flex; flex-direction: column; }
+    .plotted-window h4 { margin: 0 0 8px 0; background: #0284c7; color: white; padding: 6px; font-size: 0.85rem; text-align: center; border-radius: 2px; }
+    .plotted-window ul { list-style: none; padding: 0; margin: 0; font-size: 0.8rem; line-height: 1.6; color: #e2e8f0; }
+
+    .center-entrance { width: 22%; height: 85%; position: relative; border: 4px solid #64748b; border-bottom: none; background: #0f172a; overflow: hidden; display: flex; cursor: pointer; }
+    .sensor-light { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 30px; height: 6px; background: #22c55e; border-radius: 3px; z-index: 6; }
+    .sliding-door { width: 50%; height: 100%; background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(15, 23, 42, 0.7) 100%); border: 2px solid #38bdf8; position: relative; transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1); display: flex; align-items: center; justify-content: center; }
+    .door-handle-bar { width: 4px; height: 70px; background: #cbd5e1; border-radius: 2px; }
+    .clinic-facade.opened .door-left { transform: translateX(-100%); }
+    .clinic-facade.opened .door-right { transform: translateX(100%); }
+
+    .sidewalk { width: 100%; height: 45px; background: repeating-linear-gradient(90deg, #cbd5e1, #cbd5e1 40px, #94a3b8 41px, #94a3b8 80px); border-top: 4px solid #475569; position: relative; }
+    .curb { position: absolute; bottom: 0; width: 100%; height: 10px; background: repeating-linear-gradient(90deg, #eab308, #eab308 50px, #1e293b 50px, #1e293b 100px); }
+    .enter-btn-real { position: absolute; bottom: 55px; z-index: 25; padding: 11px 30px; background: #0284c7; color: white; border: 2px solid #38bdf8; border-radius: 25px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.3s; }
+    .enter-btn-real:hover { background: #0369a1; transform: scale(1.05); }
+
+    /* INTERIOR */
+    .dashboard-interior { padding: 25px; background-color: #0f172a; min-height: 750px; display: none; width: 100%; box-sizing: border-box; }
+    .dashboard-interior.active { display: block; }
+
+    .interior-scene-container {
+        background: #1e293b; border-radius: 12px; padding: 30px; position: relative; min-height: 680px;
+        display: flex; gap: 30px; align-items: stretch; border: 3px solid #334155; box-sizing: border-box; width: 100%;
+    }
+
+    .top-nav-bar {
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 5px 10px; width: 100%; box-sizing: border-box;
+    }
+    .back-to-facade-btn {
+        background: #0284c7; color: #f8fafc; border: none; padding: 9px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: 0.3s;
+        box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+    }
+    .back-to-facade-btn:hover { background: #0369a1; transform: scale(1.03); }
+
+    /* IZQUIERDA: PUERTAS ANCHAS */
+    .hallway-visual-side {
+        flex: 1.35; background: #cbd5e1; border: 5px solid #475569; border-radius: 10px; padding: 22px;
+        display: flex; flex-direction: column; gap: 15px; box-sizing: border-box;
+    }
+    .hallway-title-tag {
+        background: #334155; color: #f8fafc; padding: 10px; text-align: center; font-weight: bold; border-radius: 6px; font-size: 0.95rem; text-transform: uppercase;
+    }
+    .doors-row-container {
+        display: flex; gap: 15px; justify-content: space-between; flex: 1; align-items: stretch;
+    }
+    .vertical-real-door {
+        flex: 1; background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+        border: 3px solid #1e293b; border-bottom: 8px solid #0f172a; border-radius: 6px;
+        padding: 15px 8px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+        cursor: pointer; position: relative; transition: 0.3s; box-sizing: border-box; box-shadow: 0 8px 16px rgba(0,0,0,0.25); text-align: center;
+    }
+    .vertical-real-door:hover { background: #e0f2fe; border-color: #0284c7; transform: translateY(-5px); }
+    .door-sign-plaque {
+        background: #0284c7; color: white; padding: 5px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; width: 100%; box-sizing: border-box;
+    }
+    .door-center-info h4 { margin: 10px 0 4px 0; color: #0f172a; font-size: 0.95rem; font-weight: 800; }
+    .door-center-info p { margin: 0; color: #475569; font-size: 0.7rem; line-height: 1.3; }
+    .door-knob-vertical {
+        width: 8px; height: 30px; background: #64748b; border-radius: 2px; position: absolute; right: 5px; top: 55%; box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+    }
+    .door-bottom-action {
+        background: #1e293b; color: #38bdf8; font-size: 0.75rem; font-weight: bold; padding: 5px 8px; border-radius: 4px; width: 100%; box-sizing: border-box;
+    }
+
+    /* DERECHA: OFICINA */
+    .office-front-area {
+        flex: 1.15; background: #f1f5f9; border: 5px solid #475569; border-radius: 10px; padding: 25px;
+        display: flex; flex-direction: column; justify-content: space-between; align-items: center; box-sizing: border-box;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3); position: relative;
+    }
+
+    .office-main-title {
+        font-family: 'Roboto', sans-serif; font-weight: 900; font-size: 1.85rem; color: #0f172a; text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 0.5px; text-align: center;
+    }
+    .office-main-subtitle { font-size: 0.9rem; color: #64748b; margin: 0 0 15px 0; text-align: center; }
+
+    .front-wall-board {
+        width: 85%; background: #ffffff; border: 4px solid #334155; border-radius: 6px; padding: 16px;
+        text-align: center; box-sizing: border-box; box-shadow: 0 5px 12px rgba(0,0,0,0.1); position: relative;
+        margin-bottom: 12px;
+    }
+    .board-inner-heading { font-weight: bold; font-size: 1rem; color: #1e293b; margin-bottom: 10px; }
+
+    .board-notes-container {
+        display: flex; gap: 12px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .mini-note {
+        background: #fef08a; border: 1px solid #eab308; padding: 6px 12px; border-radius: 4px; font-size: 0.75rem; color: #1e293b; font-weight: bold; transform: rotate(-1deg);
+    }
+    .mini-note.pink { background: #fbcfe8; border-color: #ec4899; transform: rotate(1deg); }
+    .mini-note.blue { background: #bae6fd; border-color: #0284c7; transform: rotate(1deg); }
+
+    .board-enter-btn {
+        background: #0284c7; color: white; border: none; padding: 8px 20px; border-radius: 18px;
+        font-weight: bold; font-size: 0.85rem; cursor: pointer; transition: 0.3s; display: inline-block;
+        box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+    }
+    .board-enter-btn:hover { background: #0369a1; transform: scale(1.05); }
+
+    .desk-area-wrapper {
+        width: 90%; position: relative; display: flex; flex-direction: column; align-items: center;
+    }
+
+    .office-chair {
+        width: 90px; height: 40px; background: #475569; border-radius: 8px 8px 0 0;
+        position: absolute; top: -30px; z-index: 1; border: 2px solid #1e293b;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .front-wooden-desk {
+        width: 100%; height: 95px; background: #d4a373; border: 3px solid #8c6239; border-top: 6px solid #b07d52;
+        border-radius: 6px; position: relative; display: flex; justify-content: space-between; align-items: flex-end;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25); z-index: 2;
+    }
+    .desk-metal-leg-left, .desk-metal-leg-right {
+        width: 12px; height: 100%; background: #334155; position: absolute; bottom: -15px; border-radius: 2px;
+    }
+    .desk-metal-leg-left { left: 20px; }
+    .desk-metal-leg-right { right: 20px; }
+
+    .desk-center-label {
+        background: #1e293b; color: #f8fafc; padding: 4px 16px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;
+        margin: 0 auto 10px auto; z-index: 3; border: 1px solid #38bdf8;
+    }
+
+    /* Vistas internas y componentes */
+    .section-view, .room-detail-view { display: none; }
+    .section-view.active, .room-detail-view.active { display: block; }
+    .back-btn { background: #334155; color: #f8fafc; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 20px; font-size: 0.9rem; }
+    .back-btn:hover { background: #475569; }
+
+    /* Pizarra con tus capturas reales en base64 */
+    .corkboard { background: #b45309; border: 8px solid #78350f; border-radius: 8px; padding: 25px; margin-bottom: 25px; }
+    .corkboard h3 { color: #fef3c7; margin-top: 0; border-bottom: 2px dashed #d97706; padding-bottom: 10px; font-size: 1.2rem; }
+    .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 15px; }
+    .news-clipping { background: #fffbeb; color: #1e293b; padding: 12px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); transform: rotate(-1deg); border-left: 5px solid #d97706; text-align: center; }
+    .news-clipping img { width: 100%; height: auto; border-radius: 4px; border: 1px solid #cbd5e1; }
+
+    /* Estructura vertical para los Post-its */
+    .postit-stack-container { display: flex; flex-direction: column; gap: 20px; }
+    .postit-row-two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    .postit { padding: 25px; border-radius: 6px; box-shadow: 4px 4px 15px rgba(0,0,0,0.3); color: #1e293b; }
+    .postit.yellow { background: #fef08a; border-top: 6px solid #facc15; }
+    .postit.pink { background: #fbcfe8; border-top: 6px solid #f472b6; }
+    .postit.blue { background: #e0f2fe; border-top: 6px solid #0284c7; width: 100%; box-sizing: border-box; }
+
+    .postit h3 { margin-top: 0; font-size: 1.3rem; margin-bottom: 15px; color: #1e293b; font-weight: 900; }
+    .postit ul { margin: 0; padding-left: 20px; font-size: 0.95rem; line-height: 1.6; color: #1e293b; }
+    .postit p { margin: 0; font-size: 0.95rem; line-height: 1.6; color: #1e293b; }
+
+    .editable-text-box {
+        background: #1e293b; border: 2px dashed #38bdf8; border-radius: 8px; padding: 18px; margin-bottom: 20px; color: #38bdf8; font-size: 1rem;
+    }
+
+    .chart-code-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 25px; }
+    .chart-box, .code-box { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 22px; box-sizing: border-box; overflow: hidden; }
+    .code-box pre { background: #0f172a; padding: 18px; border-radius: 8px; color: #38bdf8; font-size: 0.8rem; overflow-x: auto; max-height: 450px; margin: 0; white-space: pre-wrap; word-break: break-all; }
+
+    .cost-grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 20px; }
+    .cost-header-col { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 18px; text-align: center; font-size: 0.95rem; font-weight: bold; color: #38bdf8; }
+    .cost-btn-cell { padding: 16px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 1rem; color: #0f172a; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    .btn-cyan { background: #00f5d4; }
+    .btn-orange { background: #ff9f1c; }
+    .btn-yellow { background: #fde047; }
+
+    .todo-section { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }
+    .todo-box { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 25px; }
+    .todo-box h3 { color: #38bdf8; margin-top: 0; font-size: 1.2rem; }
+    .todo-list-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+    .todo-item { background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 6px; display: flex; align-items: center; gap: 12px; font-size: 0.85rem; color: #e2e8f0; }
+    .todo-item.completed span { text-decoration: line-through; color: #64748b; }
+</style>
+
+<div id="clinic-app">
+    <!-- PORTADA EXTERIOR -->
+    <div id="facade" class="clinic-facade">
+        <div class="building-top">
+            <div class="window-frame"><div class="window-pane"></div><div class="window-pane"></div></div>
+            <div class="window-frame"><div class="window-pane"></div><div class="window-pane"></div></div>
+            <div class="window-frame"><div class="window-pane"></div><div class="window-pane"></div></div>
+        </div>
+
+        <div class="header-sign-real">
+            <h1>ENTRE ESPERAR O PAGAR</h1>
+            <h2>El Dilema de la Atención Médica Familiar en 2026</h2>
+        </div>
+
+        <div class="entrance-building-real">
+            <div class="plotted-window">
+                <h4>👥 Integrantes</h4>
+                <ul><li>• Malvina Basile</li><li>• Constanza Fernández Arminio</li><li>• Camilo García</li><li>• Romina Olivares</li><li>• Belinda Puma</li><li>• Candela Rojas</li></ul>
+            </div>
+
+            <div class="center-entrance" onclick="openClinic()">
+                <div class="sensor-light"></div>
+                <div class="sliding-door door-left"><div class="door-handle-bar"></div></div>
+                <div class="sliding-door door-right"><div class="door-handle-bar"></div></div>
+            </div>
+
+            <div class="plotted-window">
+                <h4>🏥 Clínicas del Análisis</h4>
+                <ul><li>• Sala Médica San Martín (Turdera)</li><li>• Centro Médico Monteagudo (Florencio Varela)</li><li>• Centro Médico Sala Salud (Lanús Oeste)</li></ul>
+            </div>
+        </div>
+
+        <div class="sidewalk"><div class="curb"></div></div>
+        <button class="enter-btn-real" onclick="openClinic()">🚪 Tocar para Ingresar</button>
+    </div>
+
+    <!-- INTERIOR -->
+    <div id="dashboard-interior" class="dashboard-interior active">
+
+        <!-- BARRA SUPERIOR CON BOTÓN PARA VOLVER A LA PORTADA -->
+        <div class="top-nav-bar">
+            <span style="font-size: 0.95rem; color: #94a3b8; font-weight: 600;">🏥 Tablero General de Análisis</span>
+            <button class="back-to-facade-btn" onclick="returnToFacade()">🏠 Volver a la Portada</button>
+        </div>
+
+        <!-- VISTA PRINCIPAL: PUERTAS Y OFICINA -->
+        <div id="view-interior-main" class="interior-scene-container">
+
+            <!-- Izquierda: Puertas Anchas -->
+            <div class="hallway-visual-side">
+                <div class="hallway-title-tag">🚪 Pasillo de Consultorios</div>
+
+                <div class="doors-row-container">
+                    <div class="vertical-real-door" onclick="openRoom(1)">
+                        <div class="door-sign-plaque">Puerta 01</div>
+                        <div class="door-center-info">
+                            <h4>Consultorio 01</h4>
+                            <p>Promedio Mensual</p>
+                        </div>
+                        <div class="door-knob-vertical"></div>
+                        <div class="door-bottom-action">Entrar ➔</div>
+                    </div>
+
+                    <div class="vertical-real-door" onclick="openRoom(2)">
+                        <div class="door-sign-plaque">Puerta 02</div>
+                        <div class="door-center-info">
+                            <h4>Consultorio 02</h4>
+                            <p>Evolución Total</p>
+                        </div>
+                        <div class="door-knob-vertical"></div>
+                        <div class="door-bottom-action">Entrar ➔</div>
+                    </div>
+
+                    <div class="vertical-real-door" onclick="openRoom(3)">
+                        <div class="door-sign-plaque">Puerta 03</div>
+                        <div class="door-center-info">
+                            <h4>Consultorio 03</h4>
+                            <p>Costos y Boxplot</p>
+                        </div>
+                        <div class="door-knob-vertical"></div>
+                        <div class="door-bottom-action">Entrar ➔</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Derecha: Oficina Compacta -->
+            <div class="office-front-area">
+
+                <div>
+                    <h2 class="office-main-title">Entre Esperar o Pagar</h2>
+                    <p class="office-main-subtitle">Recepción Principal</p>
+                </div>
+
+                <!-- Pizarrón -->
+                <div class="front-wall-board">
+                    <div class="board-inner-heading">Pizarra de Investigación</div>
+                    <div class="board-notes-container">
+                        <div class="mini-note">Problemática</div>
+                        <div class="mini-note pink">Objetivos</div>
+                        <div class="mini-note blue">Marco Teórico</div>
+                        <div class="mini-note">Noticias</div>
+                    </div>
+                    <button class="board-enter-btn" onclick="switchView('counter')">Ver Información ➔</button>
+                </div>
+
+                <!-- Escritorio con silla limpia -->
+                <div class="desk-area-wrapper">
+                    <div class="office-chair"></div>
+                    <div class="front-wooden-desk">
+                        <div class="desk-metal-leg-left"></div>
+                        <div class="desk-center-label">🗄️ RECEPCIÓN</div>
+                        <div class="desk-metal-leg-right"></div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- VISTA MOSTRADOR CON TUS FOTOS DE DIARIOS EN BASE64 -->
+        <div id="view-counter" class="section-view">
+            <button class="back-btn" onclick="switchView('main')">⬅ Volver al Pasillo y Mostrador</button>
+
+            <div class="corkboard">
+                <h3>📌 Pizarra de Investigación: Cobertura Periodística (2026)</h3>
+                <div class="news-grid">
+                    <div class="news-clipping">[ Falta diario_1.png en Drive ]</div>
+                    <div class="news-clipping">[ Falta diario_2.png en Drive ]</div>
+                    <div class="news-clipping">[ Falta diario_3.png en Drive ]</div>
+                </div>
+            </div>
+
+            <div class="postit-stack-container">
+                <div class="postit-row-two">
+                    <div class="postit yellow">
+                        <h3>🚨 Problemática</h3>
+                        <ul><li>📌 Problemas de saturación, demoras y recortes en el sistema sanitario.</li><li>📌 Gran parte de la población debe buscar alternativas en el sector privado.</li><li>📌 Fuerte impacto económico en los presupuestos familiares.</li></ul>
+                    </div>
+                    <div class="postit pink">
+                        <h3>🎯 Objetivo del Estudio</h3>
+                        <p>Evaluar la evolución temporal y la distribución por especialidades de la demanda en una clínica privada de Turdera, y estimar el impacto económico del gasto de bolsillo anual para una familia tipo a partir de los aranceles de clínicas privadas del Conurbano durante 2026.</p>
+                    </div>
+                </div>
+                <div class="postit blue">
+                    <h3>📚 Marco Teórico</h3>
+                    <p>✍️ [ Completar aquí con los conceptos teóricos clave, bibliografía o marcos de referencia del proyecto ]</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONSULTORIO 1 -->
+        <div id="room-1" class="room-detail-view">
+            <button class="back-btn" onclick="switchView('main')">⬅ Volver al Pasillo y Mostrador</button>
+
+            <div class="editable-text-box">
+                <p style="margin:0;">Este gráfico ayuda a identificar las áreas de mayor saturación, se realizó la suma total de turnos por especialidad, para luego realizar un promedio de las mismas</p>
+            </div>
+
+            <div class="chart-code-grid">
+                <div class="chart-box">
+                    <h3 style="color: #38bdf8; margin-top:0; font-size:1.1rem;">📊 Gráfico Interactivo (Plotly)</h3>
+                    <div style="height: 480px; width: 100%;"><div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>                <div id="1a7f1047-30b0-4e32-bdf6-4b4d929ac0d9" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("1a7f1047-30b0-4e32-bdf6-4b4d929ac0d9")) {                    Plotly.newPlot(                        "1a7f1047-30b0-4e32-bdf6-4b4d929ac0d9",                        [{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"CARDIOLOGÍA","marker":{"color":"#FF4A5A","pattern":{"shape":""}},"name":"CARDIOLOGÍA","offsetgroup":"CARDIOLOGÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["CARDIOLOGÍA"],"xaxis":"x","y":[29.77777777777778],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"CLINICA","marker":{"color":"#2EC4B6","pattern":{"shape":""}},"name":"CLINICA","offsetgroup":"CLINICA","orientation":"v","showlegend":true,"textposition":"auto","x":["CLINICA"],"xaxis":"x","y":[38.22222222222222],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"DERMATOLOGÍA","marker":{"color":"#FF9F1C","pattern":{"shape":""}},"name":"DERMATOLOGÍA","offsetgroup":"DERMATOLOGÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["DERMATOLOGÍA"],"xaxis":"x","y":[32.333333333333336],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"ECOGRAFÍA","marker":{"color":"#E71D36","pattern":{"shape":""}},"name":"ECOGRAFÍA","offsetgroup":"ECOGRAFÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["ECOGRAFÍA"],"xaxis":"x","y":[47.77777777777778],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"FONOAUDIOLOGÍA","marker":{"color":"#3A86FF","pattern":{"shape":""}},"name":"FONOAUDIOLOGÍA","offsetgroup":"FONOAUDIOLOGÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["FONOAUDIOLOGÍA"],"xaxis":"x","y":[23.5],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"GINECOLOGÍA","marker":{"color":"#8338EC","pattern":{"shape":""}},"name":"GINECOLOGÍA","offsetgroup":"GINECOLOGÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["GINECOLOGÍA"],"xaxis":"x","y":[15.0],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"MAMOGRAFÍA","marker":{"color":"#FF007F","pattern":{"shape":""}},"name":"MAMOGRAFÍA","offsetgroup":"MAMOGRAFÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["MAMOGRAFÍA"],"xaxis":"x","y":[3.5555555555555554],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"NEUROLOGÍA","marker":{"color":"#00F5D4","pattern":{"shape":""}},"name":"NEUROLOGÍA","offsetgroup":"NEUROLOGÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["NEUROLOGÍA"],"xaxis":"x","y":[9.555555555555555],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"NUTRICIONISTA","marker":{"color":"#FFBE0B","pattern":{"shape":""}},"name":"NUTRICIONISTA","offsetgroup":"NUTRICIONISTA","orientation":"v","showlegend":true,"textposition":"auto","x":["NUTRICIONISTA"],"xaxis":"x","y":[4.222222222222222],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"ODONTOLOGÍA","marker":{"color":"#9B5DE5","pattern":{"shape":""}},"name":"ODONTOLOGÍA","offsetgroup":"ODONTOLOGÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["ODONTOLOGÍA"],"xaxis":"x","y":[11.11111111111111],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"OFTAMOLOGÍA","marker":{"color":"#00BBF9","pattern":{"shape":""}},"name":"OFTAMOLOGÍA","offsetgroup":"OFTAMOLOGÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["OFTAMOLOGÍA"],"xaxis":"x","y":[25.25],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"OTORRINO","marker":{"color":"#FF5400","pattern":{"shape":""}},"name":"OTORRINO","offsetgroup":"OTORRINO","orientation":"v","showlegend":true,"textposition":"auto","x":["OTORRINO"],"xaxis":"x","y":[15.666666666666666],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"PEDIATRÍA","marker":{"color":"#70E000","pattern":{"shape":""}},"name":"PEDIATRÍA","offsetgroup":"PEDIATRÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["PEDIATRÍA"],"xaxis":"x","y":[49.0],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"PSICOLOGÍA","marker":{"color":"#EA526F","pattern":{"shape":""}},"name":"PSICOLOGÍA","offsetgroup":"PSICOLOGÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["PSICOLOGÍA"],"xaxis":"x","y":[53.111111111111114],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"PSICOPEDAGOGÍA","marker":{"color":"#4CC9F0","pattern":{"shape":""}},"name":"PSICOPEDAGOGÍA","offsetgroup":"PSICOPEDAGOGÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["PSICOPEDAGOGÍA"],"xaxis":"x","y":[14.444444444444445],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"PSIQUIATRIA","marker":{"color":"#F15BB5","pattern":{"shape":""}},"name":"PSIQUIATRIA","offsetgroup":"PSIQUIATRIA","orientation":"v","showlegend":true,"textposition":"auto","x":["PSIQUIATRIA"],"xaxis":"x","y":[13.666666666666666],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"RADIOLOGÍA","marker":{"color":"#00B4D8","pattern":{"shape":""}},"name":"RADIOLOGÍA","offsetgroup":"RADIOLOGÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["RADIOLOGÍA"],"xaxis":"x","y":[13.555555555555555],"yaxis":"y","type":"bar"},{"alignmentgroup":"True","hovertemplate":"Especialidad=%{x}\u003cbr\u003ePromedio de Consultas \u002f Mes=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"TRAUMATOLOGÍA","marker":{"color":"#F72585","pattern":{"shape":""}},"name":"TRAUMATOLOGÍA","offsetgroup":"TRAUMATOLOGÍA","orientation":"v","showlegend":true,"textposition":"auto","x":["TRAUMATOLOGÍA"],"xaxis":"x","y":[19.0],"yaxis":"y","type":"bar"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmapgl":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmapgl"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"geo":{"bgcolor":"rgb(17,17,17)","lakecolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","showlakes":true,"showland":true,"subunitcolor":"#506784"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"dark"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"sliderdefaults":{"bgcolor":"#C8D4E3","bordercolor":"rgb(17,17,17)","borderwidth":1,"tickwidth":0},"ternary":{"aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"xaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Especialidad"},"categoryorder":"total descending","categoryarray":["CARDIOLOGÍA","CLINICA","DERMATOLOGÍA","ECOGRAFÍA","FONOAUDIOLOGÍA","GINECOLOGÍA","MAMOGRAFÍA","NEUROLOGÍA","NUTRICIONISTA","ODONTOLOGÍA","OFTAMOLOGÍA","OTORRINO","PEDIATRÍA","PSICOLOGÍA","PSICOPEDAGOGÍA","PSIQUIATRIA","RADIOLOGÍA","TRAUMATOLOGÍA"]},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Promedio de Consultas \u002f Mes"}},"legend":{"title":{"text":"Especialidad"},"tracegroupgap":0},"title":{"text":"Promedio de Consultas Mensuales por Especialidad"},"barmode":"relative"},                        {"responsive": true}                    )                };                            </script>        </div></div>
+                </div>
+                <div class="code-box">
+                    <h3 style="color: #38bdf8; margin-top:0; font-size:1.1rem;">💻 Tu Código Original (Consultorio 1)</h3>
+                    <pre><code># @title Barra promedio mensual
+import pandas as pd
+import plotly.express as px
+
+df = pd.read_csv("/content/drive/MyDrive/clinica_turdera.csv")
+
+df_mensual = (
+    df.groupby(['Mes', 'Consulta']).size().reset_index(name='Cantidad')
+)
+
+df_promedio = (
+    df_mensual.groupby('Consulta')['Cantidad'].mean().reset_index(name='Promedio_Mensual')
+)
+
+fig = px.bar(
+    df_promedio,
+    x='Consulta',
+    y='Promedio_Mensual',
+    color='Consulta',
+    color_discrete_sequence=["#FF4A5A", "#2EC4B6", "#FF9F1C", "#E71D36", "#3A86FF","#8338EC", "#FF007F", "#00F5D4", "#FFBE0B", "#9B5DE5", "#00BBF9", "#FF5400", "#70E000", "#EA526F", "#4CC9F0", "#F15BB5", "#00B4D8", "#F72585"],
+    title='Promedio de Consultas Mensuales por Especialidad',
+    labels={
+        'Consulta': 'Especialidad',
+        'Promedio_Mensual': 'Promedio de Consultas / Mes',
+    },
+    template = "plotly_dark",
+)
+
+fig.update_layout(xaxis={'categoryorder': 'total descending'})
+
+fig.show()</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONSULTORIO 2 -->
+        <div id="room-2" class="room-detail-view">
+            <button class="back-btn" onclick="switchView('main')">⬅ Volver al Pasillo y Mostrador</button>
+
+            <div class="editable-text-box">
+                <p style="margin:0;">✍️ [ Insertar aquí texto descriptivo para el Consultorio 02 ]</p>
+            </div>
+
+            <div class="chart-code-grid">
+                <div class="chart-box">
+                    <h3 style="color: #38bdf8; margin-top:0; font-size:1.1rem;">📈 Gráfico Interactivo (Plotly)</h3>
+                    <div style="height: 480px; width: 100%;"><div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>                <div id="dfd750b1-bc16-41ab-a8d9-00cb20edafd3" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("dfd750b1-bc16-41ab-a8d9-00cb20edafd3")) {                    Plotly.newPlot(                        "dfd750b1-bc16-41ab-a8d9-00cb20edafd3",                        [{"hovertemplate":"Mes=%{x}\u003cbr\u003eTotal de Consultas=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","line":{"color":"#a424ff","dash":"solid"},"marker":{"symbol":"circle"},"mode":"lines+markers","name":"","orientation":"v","showlegend":false,"x":[1,2,3,4,5,6,7,8,9],"xaxis":"x","y":[288,556,571,425,378,397,352,343,410],"yaxis":"y","type":"scatter"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmapgl":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmapgl"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"geo":{"bgcolor":"rgb(17,17,17)","lakecolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","showlakes":true,"showland":true,"subunitcolor":"#506784"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"dark"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"sliderdefaults":{"bgcolor":"#C8D4E3","bordercolor":"rgb(17,17,17)","borderwidth":1,"tickwidth":0},"ternary":{"aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"xaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Mes"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Total de Consultas"}},"legend":{"tracegroupgap":0},"title":{"text":"Evolución del Total de Consultas por Mes"}},                        {"responsive": true}                    )                };                            </script>        </div></div>
+                </div>
+                <div class="code-box">
+                    <h3 style="color: #38bdf8; margin-top:0; font-size:1.1rem;">💻 Tu Código Original (Consultorio 2)</h3>
+                    <pre><code># @title Linea evolucion del total por mes
+import pandas as pd
+import plotly.express as px
+
+df_total_mes = df.groupby('Mes').size().reset_index(name='Total_Consultas')
+
+fig = px.line(
+    df_total_mes,
+    x='Mes',
+    y='Total_Consultas',
+    markers=True,
+    title='Evolución del Total de Consultas por Mes',
+    labels={'Mes': 'Mes', 'Total_Consultas': 'Total de Consultas'},
+    color_discrete_sequence=["#a424ff"],
+    template = "plotly_dark",
+)
+
+fig.show()</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONSULTORIO 3 -->
+        <div id="room-3" class="room-detail-view">
+            <button class="back-btn" onclick="switchView('main')">⬅ Volver al Pasillo y Mostrador</button>
+
+            <div class="editable-text-box">
+                <p style="margin:0;">✍️ [ Insertar aquí texto descriptivo para el Consultorio 03 ]</p>
+            </div>
+
+            <div class="chart-code-grid">
+                <div class="chart-box">
+                    <h3 style="color: #38bdf8; margin-top:0; font-size:1.1rem;">💵 Gráfico Boxplot Interactivo</h3>
+                    <div style="height: 480px; width: 100%;"><div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>                <div id="95706727-fd7d-4ae1-b2d5-e3883510f019" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("95706727-fd7d-4ae1-b2d5-e3883510f019")) {                    Plotly.newPlot(                        "95706727-fd7d-4ae1-b2d5-e3883510f019",                        [{"alignmentgroup":"True","customdata":[["Cardiologo"],["Clínico"],["Dermatologia"],["Ecografia"],["Fonoaudiologia"],["Ginecólogo"],["Mamografia"],["Neurología"],["Nutricionista"],["Odontología"],["Oftalmológica"],["Otorrino"],["Pediatra"],["Psicología"],["Psicopedagogia"],["Psiquiatra"],["Radiología"],["Traumatologia"],["Cardiologo"],["Clínico"],["Dermatologia"],["Ecografia"],["Fonoaudiologia"],["Ginecólogo"],["Mamografia"],["Neurología"],["Nutricionista"],["Odontología"],["Oftalmológica"],["Otorrino"],["Pediatra"],["Psicología"],["Psicopedagogia"],["Psiquiatra"],["Radiología"],["Traumatologia"],["Cardiologo"],["Clínico"],["Dermatologia"],["Ecografia"],["Fonoaudiologia"],["Ginecólogo"],["Mamografia"],["Neurología"],["Nutricionista"],["Odontología"],["Oftalmológica"],["Otorrino"],["Pediatra"],["Psicología"],["Psicopedagogia"],["Psiquiatra"],["Radiología"],["Traumatologia"]],"hovertemplate":"Condición=No Socio\u003cbr\u003eEstablecimiento Médico=%{x}\u003cbr\u003eCosto del Servicio ($)=%{y}\u003cbr\u003eServicio=%{customdata[0]}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"No Socio","marker":{"color":"#4abec2"},"name":"No Socio","notched":false,"offsetgroup":"No Socio","orientation":"v","showlegend":true,"x":["Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud"],"x0":" ","xaxis":"x","y":[30000.0,30000.0,32000.0,30000.0,22000.0,35000.0,45000.0,30000.0,21000.0,65000.0,23000.0,40000.0,27000.0,32000.0,25000.0,55000.0,13000.0,27000.0,42000.0,34500.0,37000.0,30000.0,37000.0,47000.0,55000.0,53000.0,32000.0,15000.0,52000.0,43000.0,38000.0,65000.0,32000.0,72000.0,18000.0,38000.0,40000.0,27000.0,27000.0,25000.0,40000.0,30000.0,null,27000.0,34000.0,27000.0,27000.0,27000.0,27000.0,34000.0,30000.0,45000.0,14000.0,27000.0],"y0":" ","yaxis":"y","type":"box"},{"alignmentgroup":"True","customdata":[["Cardiologo"],["Clínico"],["Dermatologia"],["Ecografia"],["Fonoaudiologia"],["Ginecólogo"],["Mamografia"],["Neurología"],["Nutricionista"],["Odontología"],["Oftalmológica"],["Otorrino"],["Pediatra"],["Psicología"],["Psicopedagogia"],["Psiquiatra"],["Radiología"],["Traumatologia"],["Cardiologo"],["Clínico"],["Dermatologia"],["Ecografia"],["Fonoaudiologia"],["Ginecólogo"],["Mamografia"],["Neurología"],["Nutricionista"],["Odontología"],["Oftalmológica"],["Otorrino"],["Pediatra"],["Psicología"],["Psicopedagogia"],["Psiquiatra"],["Radiología"],["Traumatologia"],["Cardiologo"],["Clínico"],["Dermatologia"],["Ecografia"],["Fonoaudiologia"],["Ginecólogo"],["Mamografia"],["Neurología"],["Nutricionista"],["Odontología"],["Oftalmológica"],["Otorrino"],["Pediatra"],["Psicología"],["Psicopedagogia"],["Psiquiatra"],["Radiología"],["Traumatologia"]],"hovertemplate":"Condición=Socio\u003cbr\u003eEstablecimiento Médico=%{x}\u003cbr\u003eCosto del Servicio ($)=%{y}\u003cbr\u003eServicio=%{customdata[0]}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"Socio","marker":{"color":"#f0aa3a"},"name":"Socio","notched":false,"offsetgroup":"Socio","orientation":"v","showlegend":true,"x":["Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","Sala San Martin","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Monteagudo","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud","C. M. Sala Salud"],"x0":" ","xaxis":"x","y":[22500.0,22500.0,24000.0,22500.0,16500.0,26250.0,33750.0,22500.0,15750.0,48750.0,17250.0,30000.0,20250.0,24000.0,18750.0,41250.0,9750.0,20250.0,21000.0,17250.0,19000.0,15000.0,30000.0,23000.0,27000.0,26000.0,16000.0,10000.0,31000.0,21000.0,19000.0,50000.0,21000.0,36000.0,9000.0,19000.0,28000.0,18000.0,18000.0,20000.0,26000.0,20000.0,null,18000.0,22000.0,18000.0,18000.0,18000.0,18000.0,22000.0,21000.0,30000.0,13000.0,18000.0],"y0":" ","yaxis":"y","type":"box"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#f2f5fa"},"error_y":{"color":"#f2f5fa"},"marker":{"line":{"color":"rgb(17,17,17)","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"baxis":{"endlinecolor":"#A2B1C6","gridcolor":"#506784","linecolor":"#506784","minorgridcolor":"#506784","startlinecolor":"#A2B1C6"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmapgl":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmapgl"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"line":{"color":"#283442"}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"marker":{"line":{"color":"#283442"}},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#506784"},"line":{"color":"rgb(17,17,17)"}},"header":{"fill":{"color":"#2a3f5f"},"line":{"color":"rgb(17,17,17)"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#f2f5fa","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#f2f5fa"},"geo":{"bgcolor":"rgb(17,17,17)","lakecolor":"rgb(17,17,17)","landcolor":"rgb(17,17,17)","showlakes":true,"showland":true,"subunitcolor":"#506784"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"dark"},"paper_bgcolor":"rgb(17,17,17)","plot_bgcolor":"rgb(17,17,17)","polar":{"angularaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","radialaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"yaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"},"zaxis":{"backgroundcolor":"rgb(17,17,17)","gridcolor":"#506784","gridwidth":2,"linecolor":"#506784","showbackground":true,"ticks":"","zerolinecolor":"#C8D4E3"}},"shapedefaults":{"line":{"color":"#f2f5fa"}},"sliderdefaults":{"bgcolor":"#C8D4E3","bordercolor":"rgb(17,17,17)","borderwidth":1,"tickwidth":0},"ternary":{"aaxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"baxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""},"bgcolor":"rgb(17,17,17)","caxis":{"gridcolor":"#506784","linecolor":"#506784","ticks":""}},"title":{"x":0.05},"updatemenudefaults":{"bgcolor":"#506784","borderwidth":0},"xaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#283442","linecolor":"#506784","ticks":"","title":{"standoff":15},"zerolinecolor":"#283442","zerolinewidth":2}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Establecimiento Médico"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Costo del Servicio ($)"},"tickformat":",.0f"},"legend":{"title":{"text":"Condición"},"tracegroupgap":0},"title":{"text":"Distribución de Costos Médicos por Clínica y Beneficio de Socio"},"boxmode":"group"},                        {"responsive": true}                    )                };                            </script>        </div></div>
+                </div>
+                <div class="code-box">
+                    <h3 style="color: #38bdf8; margin-top:0; font-size:1.1rem;">💻 Tu Código Original (Consultorio 3)</h3>
+                    <pre><code># @title Boxplot Costos
+import pandas as pd
+import plotly.express as px
+
+data_filtrada = data[data["Servicio"] != "Mensualidad Socios"]
+
+data_long = data_filtrada.melt(
+    id_vars=["Servicio"], value_vars=[col for col in data.columns if col != "Servicio"], var_name="Columna_Original", value_name="Costo"
+)
+
+def mapear_clinica_y_socio(fila):
+    nombre_col = fila["Columna_Original"].strip()
+    condicion = "Socio" if "Socios" in nombre_col else "No Socio"
+
+    if "San Martin" in nombre_col:
+        clinica = "Sala San Martin"
+    elif "Monteagudo" in nombre_col:
+        clinica = "C. M. Monteagudo"
+    elif "sala salud" in nombre_col or "Sala Salud" in nombre_col:
+        clinica = "C. M. Sala Salud"
+    else:
+        clinica = "Otra"
+
+    return pd.Series([clinica, condicion])
+
+data_long[["Clínica", "Condición"]] = data_long.apply(mapear_clinica_y_socio, axis=1)
+
+fig = px.box(
+    data_long,
+    x="Clínica",
+    y="Costo",
+    color="Condición",
+    hover_data=["Servicio"],
+    title="Distribución de Costos Médicos por Clínica y Beneficio de Socio",
+    labels={'Costo': 'Costo del Servicio ($)', 'Clínica': 'Establecimiento Médico'},
+    color_discrete_sequence=["#4abec2", "#f0aa3a"]
+)
+
+fig.update_layout(
+    boxmode="group",
+    yaxis_tickformat=",.0f",
+    template="plotly_white"
+)
+
+fig.show()</code></pre>
+                </div>
+            </div>
+
+            <!-- TO-DO LIST -->
+            <div class="todo-section" style="margin-top: 25px;">
+                <div class="todo-box">
+                    <h3>📋 Registro de Especialidades Requeridas (To-Do)</h3>
+                    <div class="todo-list-grid">
+                        <div class="todo-item "><input type="checkbox"  onclick="toggleTodo(this)"><span>4 x Cardiólogo</span></div><div class="todo-item "><input type="checkbox"  onclick="toggleTodo(this)"><span>2 x Clínico</span></div><div class="todo-item "><input type="checkbox"  onclick="toggleTodo(this)"><span>4 x Dermatólogo</span></div><div class="todo-item "><input type="checkbox"  onclick="toggleTodo(this)"><span>1 x Ecografía</span></div><div class="todo-item "><input type="checkbox"  onclick="toggleTodo(this)"><span>2 x Fonoaudiología</span></div><div class="todo-item "><input type="checkbox"  onclick="toggleTodo(this)"><span>1 x Ginecólogo</span></div><div class="todo-item "><input type="checkbox"  onclick="toggleTodo(this)"><span>1 x Mamografía</span></div><div class="todo-item "><input type="checkbox"  onclick="toggleTodo(this)"><span>4 x Odontología</span></div><div class="todo-item "><input type="checkbox"  onclick="toggleTodo(this)"><span>4 x Oftalmología</span></div><div class="todo-item "><input type="checkbox"  onclick="toggleTodo(this)"><span>4 x Otorrino</span></div><div class="todo-item "><input type="checkbox"  onclick="toggleTodo(this)"><span>2 x Pediatra</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-box" style="margin-top: 25px;">
+                <h3 style="color: #38bdf8; margin-top:0;">📊 Detalle de Aranceles por Establecimiento</h3>
+                <div class="cost-grid-container">
+                    <div class="cost-header-col">Sala San Martín (Turdera)</div>
+                    <div class="cost-header-col">C. M. Monteagudo (F. Varela)</div>
+                    <div class="cost-header-col">C. M. Sala Salud (Lanús)</div>
+                    <div class="cost-header-col">Concepto / Categoría</div>
+
+                    <div class="cost-btn-cell btn-cyan">$1.028.000</div>
+                    <div class="cost-btn-cell btn-cyan">$1.107.000</div>
+                    <div class="cost-btn-cell btn-cyan">$835.000</div>
+                    <div class="cost-btn-cell" style="background:#0284c7; color:white;">Costo General</div>
+
+                    <div class="cost-btn-cell btn-orange">$987.000</div>
+                    <div class="cost-btn-cell btn-orange">$1.174.300</div>
+                    <div class="cost-btn-cell btn-orange">$1.164.000</div>
+                    <div class="cost-btn-cell" style="background:#f97316; color:white;">Costo para Socios</div>
+
+                    <div class="cost-btn-cell btn-yellow">$5.000</div>
+                    <div class="cost-btn-cell btn-yellow">$13.700</div>
+                    <div class="cost-btn-cell btn-yellow">$15.000</div>
+                    <div class="cost-btn-cell" style="background:#facc15; color:white;">Mensualidad Adultos</div>
+
+                    <div class="cost-btn-cell btn-yellow">$4.000</div>
+                    <div class="cost-btn-cell btn-yellow">$10.000</div>
+                    <div class="cost-btn-cell btn-yellow">$10.000</div>
+                    <div class="cost-btn-cell" style="background:#facc15; color:white;">Mensualidad Niños</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openClinic() {
+        const facade = document.getElementById('facade');
+        facade.classList.add('opened');
+        document.getElementById('dashboard-interior').classList.add('active');
+        switchView('main');
+    }
+
+    function returnToFacade() {
+        const facade = document.getElementById('facade');
+        facade.classList.remove('opened');
+    }
+
+    function switchView(viewName) {
+        document.getElementById('view-interior-main').style.display = 'none';
+        document.getElementById('view-counter').style.display = 'none';
+        document.getElementById('room-1').style.display = 'none';
+        document.getElementById('room-2').style.display = 'none';
+        document.getElementById('room-3').style.display = 'none';
+
+        if (viewName === 'main') document.getElementById('view-interior-main').style.display = 'flex';
+        else if (viewName === 'counter') document.getElementById('view-counter').style.display = 'block';
+
+        setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 50);
+    }
+
+    function openRoom(roomNum) {
+        document.getElementById('view-interior-main').style.display = 'none';
+        document.getElementById('room-1').style.display = 'none';
+        document.getElementById('room-2').style.display = 'none';
+        document.getElementById('room-3').style.display = 'none';
+        document.getElementById('room-' + roomNum).style.display = 'block';
+
+        setTimeout(function() {
+            window.dispatchEvent(new Event('resize'));
+        }, 50);
+    }
+
+    function toggleTodo(checkbox) {
+        const item = checkbox.closest('.todo-item');
+        if (checkbox.checked) item.classList.add('completed');
+        else item.classList.remove('completed');
+    }
+</script>
